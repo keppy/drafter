@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
+	"os/exec"
 
 	"github.com/urfave/cli"
 )
@@ -26,7 +26,7 @@ func main() {
 			log.Fatal("You must specify a tag")
 		}
 		if len(description) == 0 {
-			log.Fatal("You must specify a release description")
+			log.Fatal("You must specify a description")
 		}
 
 		fmt.Printf("Drafting release %v as %v", tag, user)
@@ -34,7 +34,8 @@ func main() {
 		tagCommand := fmt.Sprintf("git tag -a %v -m %v", tag, description)
 		fmt.Printf("running: %v", tagCommand)
 
-		err := app.Run(strings.Fields(tagCommand))
+		cmd := exec.Command("git", "tag", "-a", tag, "-m", description)
+		err := cmd.Run()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -42,7 +43,8 @@ func main() {
 		pushTag := fmt.Sprintf("git push origin %v", tag)
 		fmt.Printf("running: %v", pushTag)
 
-		err = app.Run(strings.Fields(pushTag))
+		cmd = exec.Command("git", "push", "origin", tag)
+		err = cmd.Run()
 		if err != nil {
 			log.Fatal(err)
 		}
