@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -14,10 +15,18 @@ func main() {
 	app.Name = "drafter"
 	app.Usage = "draft releases with ease"
 
+	// TODO: use the full template override
+	cli.HelpPrinter = func(w io.Writer, templ string, data interface{}) {
+		fmt.Println("USAGE:")
+		fmt.Println("	drafter [user] [git-tag] [description] [deployScriptPath] [IP]")
+	}
+
 	app.Action = func(c *cli.Context) error {
 		user := c.Args().Get(0)
 		tag := c.Args().Get(1)
 		description := c.Args().Get(2)
+		deployScriptPath := c.Args().Get(3)
+		ip := c.Args().Get(4)
 
 		if len(user) == 0 {
 			log.Fatal("You must specify a user")
@@ -27,6 +36,12 @@ func main() {
 		}
 		if len(description) == 0 {
 			log.Fatal("You must specify a description")
+		}
+		if len(deployScriptPath) == 0 {
+			log.Fatal("You must specify a deploy script path")
+		}
+		if len(ip) == 0 {
+			log.Fatal("You must specify a deploy target IP")
 		}
 
 		fmt.Printf("Drafting release %v as %v", tag, user)
@@ -49,6 +64,13 @@ func main() {
 			log.Fatal(err)
 		}
 
+		cmd = exec.Command(deployScriptPath, ip, tag)
+		err = cmd.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// TODO: Use github API to create a release
 		return nil
 	}
 
